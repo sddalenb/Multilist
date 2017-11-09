@@ -1,9 +1,10 @@
 /**
  * Multilist.h
- * The purpose of this program is to take in a list of students and their orresponding classes
- * and enter them into a multilist. The menu in the main allows for the user to load the students
- * from a data file or exit, a subsequent submenu allows for the user to add their own data, or
- * view the classes by student and student by classes.
+ * The purpose of this program is to take in a list of students and their corresponding classes
+ * and enter them into a multilist. The multilist class utilizes a head node at (0,0) to connect all students
+ * and classes from. Head nodes for students give a start point to check if students exist or not as head
+ * nodes for classes give a start point to check if classes exist. This is the .h file in which all functions
+ * of the Multilist class will be built.
  *
  * @author Seth Dalenberg (sddalenb)
  * @date 14-Oct-2017
@@ -16,14 +17,14 @@
 
 class Multilist{
 private:
-    Node * headNode = NULL;
+    Node * headNode = nullptr;
 public:
     Multilist(); ///default constructor
     ~Multilist(); ///default destructor
 
-    void addStudent(int);
-    void addClass(int);
-    void insert(int, int);
+    void addStudent(Node *);
+    void addClass(Node *);
+    void insert(Node *);
 
     void printByStudent();
     void printByClass();

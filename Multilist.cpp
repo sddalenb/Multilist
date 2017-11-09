@@ -1,9 +1,9 @@
 /**
  * Multilist.cpp
- * The purpose of this program is to take in a list of students and their orresponding classes
- * and enter them into a multilist. The menu in the main allows for the user to load the students
- * from a data file or exit, a subsequent submenu allows for the user to add their own data, or
- * view the classes by student and student by classes.
+ * The purpose of this program is to take in a list of students and their corresponding classes
+ * and enter them into a multilist. The multilist class utilizes a head node at (0,0) to connect all students
+ * and classes from. Head nodes for students give a start point to check if students exist or not as head
+ * nodes for classes give a start point to check if classes exist.
  *
  * @author Seth Dalenberg (sddalenb)
  * @date 14-Oct-2017
@@ -11,42 +11,37 @@
 
 #include "Multilist.h"
 
-using namespace std;
+using std::cout;
+using std::endl;
 
 Multilist::Multilist(){
-    //default constructor
+    /// default constructor, instatiated headNode for start of multilist
     headNode = new Node(0,0);
 }
 
 Multilist::~Multilist(){
-    //default destructor
-    Node * p = headNode;
-    while(headNode->getRight() != NULL) {
-        while (headNode->getDown() != NULL)
-            headNode = headNode->getDown();
-        headNode = headNode->getRight();
-        delete p;
-        p = headNode;
-    }
+    /// default destructor, clean up headNode upon destruction
+    delete headNode;
 }
 
 /**
- * The purpose of this function is to add a haeder node for unique students.
+ * The purpose of this function is to add a header node for unique students.
  * If the student already exists it doesn't do anything. If the new student falls
- * between two students, it places it between those two students.
- * @param studId
+ * between two students, it places it between those two students. If the new student
+ * falls at the end of list, i.e. is the student with the largest ID, it is
+ * added to the end of the list of header nodes.
+ *
+ * @param newNode - node to act as current student that needs to be added
  */
-void Multilist::addStudent(int studId) {
-    Node * newNode = new Node(studId, 0);
+void Multilist::addStudent(Node * newNode) {
     Node * current = headNode;
     bool keepGoing = true;
 
     while(keepGoing) {
         if(current->getStudId() == newNode->getStudId()) {
-            //cout << "Student already exists" << endl;
             keepGoing = false;
         } else if(current->getStudId() < newNode->getStudId()) {
-            if(current->getRight() == NULL) {
+            if(current->getRight() == nullptr) {
                 current->setRight(newNode);
                 newNode->setLeft(current);
                 keepGoing = false;
@@ -68,22 +63,23 @@ void Multilist::addStudent(int studId) {
 }
 
 /**
- * The purpose of this function is to add a haeder node for unique classes.
+ * The purpose of this function is to add a header node for unique classes.
  * If the class already exists it doesn't do anything. If the new class falls
- * between two classes, it places it between those two classes.
- * @param classId
+ * between two classes, it places it between those two classes. If the new class
+ * falls at the end of list, i.e. is the class with the largest ID, it is
+ * added to the end of the list of header nodes.
+ *
+ * @param newNode - node to act as current class that needs to be added
  */
-void Multilist::addClass(int classId) {
-    Node * newNode = new Node(0, classId);
+void Multilist::addClass(Node * newNode) {
     Node * current = headNode;
     bool keepGoing = true;
 
     while(keepGoing) {
         if(current->getClassId() == newNode->getClassId()) {
-            //cout << "Class already exists" << endl;
             keepGoing = false;
         } else if(current->getClassId() < newNode->getClassId()) {
-            if(current->getDown() == NULL) {
+            if(current->getDown() == nullptr) {
                 current->setDown(newNode);
                 newNode->setUp(current);
                 keepGoing = false;
@@ -105,18 +101,16 @@ void Multilist::addClass(int classId) {
 }
 
 /**
- * the purpose of this function is to insert a student into the multilist. It connects students and classes
+ * The purpose of this function is to insert a student-class pair into the multilist. It connects students and classes
  * to the previous node in the list so as to save space in memory only adding nodes when they've been created.
- * Students and classes are linked horizontally and vertically with eachother, should a pair have already been entered
+ * Students and classes are linked horizontally and vertically with each-other, should a pair have already been entered
  * the user is notified and nothing happens.
  *
- * @param studId
- * @param classId
+ * @param newNode - the node that is to be added into the multilist containing a student-class pair
  */
-void Multilist::insert(int studId, int classId) {
+void Multilist::insert(Node * newNode) {
 
     Node * current = headNode;
-    Node * newNode = new Node(studId, classId);
     bool keepGoing = true;
     while(keepGoing) {
         if(current->getStudId() == newNode->getStudId()) {
@@ -124,7 +118,7 @@ void Multilist::insert(int studId, int classId) {
                 cout << "Student-Class union already exists" << endl;
                 keepGoing = false;
             } else if(current->getClassId() < newNode->getClassId()) {
-                if(current->getDown() == NULL) {
+                if(current->getDown() == nullptr) {
                     current->setDown(newNode);
                     newNode->setUp(current);
                     keepGoing = false;
@@ -142,7 +136,7 @@ void Multilist::insert(int studId, int classId) {
                 cout << "Something went wrong: insert" << endl;
                 keepGoing = false;
             }
-        } else if(current == NULL) {
+        } else if(current == nullptr) {
             cout << "Something went wrong: insert" << endl;
             keepGoing = false;
         } else {
@@ -155,10 +149,9 @@ void Multilist::insert(int studId, int classId) {
     while(keepGoing) {
         if(current->getClassId() == newNode->getClassId()) {
             if(current->getStudId() == newNode->getStudId()){
-                //cout << "Student-Class union already exists" << endl;
                 keepGoing = false;
             } else if(current->getStudId() < newNode->getStudId()) {
-                if(current->getRight() == NULL) {
+                if(current->getRight() == nullptr) {
                     current->setRight(newNode);
                     newNode->setLeft(current);
                     keepGoing = false;
@@ -176,7 +169,7 @@ void Multilist::insert(int studId, int classId) {
                 cout << "Something went wrong: insert" << endl;
                 keepGoing = false;
             }
-        } else if(current == NULL) {
+        } else if(current == nullptr) {
             cout << "Something went wrong: insert" << endl;
             keepGoing = false;
         } else {
@@ -192,10 +185,10 @@ void Multilist::insert(int studId, int classId) {
 void Multilist::printByClass() {
     cout << endl << endl;
     Node * currentClass = headNode->getDown();
-    while(currentClass != NULL) {
+    while(currentClass != nullptr) {
         cout << "Class " << currentClass->getClassId() << " has students: ";
         Node * currentStud = currentClass->getRight();
-        while(currentStud != NULL) {
+        while(currentStud != nullptr) {
             cout << currentStud->getStudId() << " ";
             currentStud = currentStud->getRight();
         }
@@ -211,10 +204,10 @@ void Multilist::printByClass() {
 void Multilist::printByStudent() {
     cout << endl << endl;
     Node * currentStud = headNode->getRight();
-    while(currentStud != NULL) {
+    while(currentStud != nullptr) {
         cout << "Student " << currentStud->getStudId() << " has classes: ";
         Node * currentClass = currentStud->getDown();
-        while(currentClass != NULL) {
+        while(currentClass != nullptr) {
             cout << currentClass->getClassId() << " ";
             currentClass = currentClass->getDown();
         }

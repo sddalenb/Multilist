@@ -1,6 +1,6 @@
 /**
  * Driver.cpp
- * The purpose of this program is to take in a list of students and their orresponding classes
+ * The purpose of this program is to take in a list of students and their corresponding classes
  * and enter them into a multilist. The menu in the main allows for the user to load the students
  * from a data file or exit, a subsequent submenu allows for the user to add their own data, or
  * view the classes by student and student by classes.
@@ -22,15 +22,21 @@ using std::endl;
 /**
  * parses a given data file to determine the student numbers and class numbers to be
  * used in the multilist
- * @param vStud
- * @param vClass
+ *
+ * @param vNode - stores imported student-class pairs in vector
  */
-void fileParse(std::vector<int> &vStud, std::vector<int> &vClass) {
+void fileParse(std::vector<Node *> &vNode) {
+    /// everything to import and convert from external file "data.txt"
     std::ifstream inputFile("data.txt");
     std::string currentLine, string_number;
     std::stringstream ss, converter;
+
+    /// variable to store number temporarily and vector to store all pairs which will then be attached to Node
     int number;
     std::vector<int> vTemp;
+
+    /// check if the file is open then intake all data for length of file and put on temporary vector
+    /// tell user if file doesn't exist
     if(inputFile.is_open()) {
         while(std::getline(inputFile, currentLine)) {
             ss.clear();
@@ -45,35 +51,78 @@ void fileParse(std::vector<int> &vStud, std::vector<int> &vClass) {
             }
         }
     } else {
-        cout << "Unable to open file" << endl;
+        cout << "\nUnable to open file" << endl;
     }
+
+    /// store all student-class pairs in Node and push onto Node vector
     for(int i = 0; i < vTemp.size(); i+=2) {
-        vStud.push_back(vTemp[i]);
-    }
-    for(int j = 1; j < vTemp.size(); j+=2) {
-        vClass.push_back(vTemp[j]);
+        Node * node = new Node(vTemp[i], vTemp[i+1]);
+        vNode.push_back(node);
     }
 }
 
 /**
- * Main function that runs the menus and interacts with the user
- * @return
+ * Function to take in extra student-class pair input in console from user. Prompts for student id first, then class id.
+ * Stores in node which is then returned to be manipulated as necessary.
+ *
+ * @return newNode - Node student-class pair is stored in
+ */
+Node * extraInput() {
+    /// variables to intake and convert user input
+    int studInt, classInt;
+    std::string studStr, classStr;
+    std::stringstream inputss;
+    inputss.clear();
+    inputss.str("");
+
+    /// prompt for student id, convert to integer to be used in Node
+    cout << "\nEnter a Student ID: ";
+    cin >> studStr;
+    inputss << studStr;
+    inputss >> studInt;
+    cout << "Student ID entered was: " << studInt << endl;
+    inputss.clear();
+    inputss.str("");
+
+    /// prompt for class id, convert to integer to be used in Node
+    cout << "\nEnter a Class ID: ";
+    cin >> classStr;
+    inputss << classStr;
+    inputss >> classInt;
+    cout << "Class ID entered was: " << classInt << endl;
+    inputss.clear();
+    inputss.str("");
+
+    /// Node of student-class pair to be returned for manipulation
+    Node * newNode = new Node(studInt, classInt);
+    return newNode;
+}
+
+/**
+ * Main function that runs the menus and interacts with the user. Initial menu runs to load data from file, then
+ * gives user options to add additiona student-class pair, view students by class, or view classes by student. Upon
+ * exiting program all data instatiated on the heap is deleted.
+ *
+ * @return 0 - standard return for int main()
  */
 int main(void) {
+    /// create a multilist object to utilize it's functions and store information
     Multilist * ml = new Multilist();
 
-    bool keepGoing = true, keepGoing2 = true;
+    /// variables to interpret user-input, manage loops, and store Nodes
     std::string loadStr = "", printStr = "";
     int loadMenu = 0, printMenu = 0;
+    std::vector<Node *> vNode, vStud, vClass;
 
     std::stringstream inputss;
     inputss.clear();
     inputss.str("");
 
-    while(keepGoing) {
-        cout << "\n1. Load Data (From File)\n"
-             "2. Exit the Program\n"
-             "Please enter your selection: ";
+    /// main menu loop that reprompts menu until user chooses to exit
+    while(loadMenu != 2 && printMenu != 4) {
+        cout << "\n1. Load Data (From File)"
+                "\n2. Exit the Program"
+                "\nPlease enter your selection: ";
         cin >> loadStr;
         inputss << loadStr;
         inputss >> loadMenu;
@@ -81,68 +130,85 @@ int main(void) {
         inputss.str("");
 
         if(loadMenu == 1) {
-            std::vector<int> vStud, vClass;
-            fileParse(vStud, vClass);
-            int studSize = vStud.size(), classSize = vClass.size();
+            /// interpret input from file and store onto Node vector
+            fileParse(vNode);
 
-            for (int i = 0; i < studSize; i++) {
-                int studId = vStud[i], classId = vClass[i];
-                ml->addStudent(studId);
-                ml->addClass(classId);
-                ml->insert(studId, classId);
+            /// take all student-class pairs and create head Node, stored on different vectors, to host row/column of
+            /// multilist function, student-class pair is then inserted into the multilist. Do this for all student-class pairs
+            for (int i = 0; i < vNode.size(); i++) {
+                int studId = vNode[i]->getStudId(), classId = vNode[i]->getClassId();
+
+                Node * node = vNode[i]; /// student-class pair, e.g. (1000, 1000)
+                Node * studHead = new Node(studId, 0); /// head Nodes for all students, e.g. (1000, 0)
+                Node * classHead = new Node(0, classId); /// head Nodes for all classes, e.g. (0, 1000)
+
+                vStud.push_back(studHead);
+                vClass.push_back(classHead);
+
+                ml->addStudent(studHead);
+                ml->addClass(classHead);
+                ml->insert(node);
             }
-            cout << "File has been loaded" << endl;
-            while(keepGoing2) {
-                cout << "\n1. Add an additional student-class pair\n"
-                     "2. Print Students by Class\n"
-                     "3. Print Classes by Student\n"
-                     "4. Exit Program\n"
-                        "Please enter your selection: ";
+            cout << "\nFile has been loaded" << endl;
+
+            /// new menu to give user next set of options listed below
+            while(printMenu != 4) {
+                cout << "\n1. Add an additional student-class pair"
+                        "\n2. Print Students by Class"
+                        "\n3. Print Classes by Student"
+                        "\n4. Exit Program"
+                        "\nPlease enter your selection: ";
                 cin >> printStr;
                 inputss << printStr;
                 inputss >> printMenu;
                 inputss.clear();
                 inputss.str("");
+
                 if(printMenu == 1) {
-                    int studInt, classInt;
-                    std::string studStr, classStr;
+                    /// create new student-class pair based on user input, put onto respective vectors
+                    /// then insert new student-class pair into multilist
+                    Node * n = extraInput();
+                    int studInt = n->getStudId(), classInt = n->getClassId();
 
-                    cout << "\nEnter a Student ID: ";
-                    cin >> studStr;
-                    inputss << studStr;
-                    inputss >> studInt;
-                    inputss.clear();
-                    inputss.str("");
+                    Node * s = new Node(studInt, 0);
+                    Node * c = new Node(0, classInt);
 
-                    cout << "\nEnter a Class ID: ";
-                    cin >> classStr;
-                    inputss << classStr;
-                    inputss >> classInt;
-                    inputss.clear();
-                    inputss.str("");
+                    vNode.push_back(n);
+                    vStud.push_back(s);
+                    vClass.push_back(c);
 
-                    ml->addStudent(studInt);
-                    ml->addClass(classInt);
-                    ml->insert(studInt, classInt);
+                    ml->addStudent(s);
+                    ml->addClass(c);
+                    ml->insert(n);
                 } else if(printMenu == 2) {
+                    /// print all students in each class for all classes
                     ml->printByClass();
                 } else if(printMenu == 3) {
+                    /// print all classes each student is enrolled in for all students
                     ml->printByStudent();
                 } else if(printMenu == 4) {
-                    keepGoing = false;
-                    keepGoing2 = false;
+                    cout << "\nGoodbye!" << endl;
                 } else {
-                    cout << "Invalid input" << endl;
+                    cout << "\nInvalid input" << endl;
                 }
             }
-        } else if (loadMenu == 2) {
-            cout << "Goodbye" << endl;
-            keepGoing = false;
+        } else if(loadMenu == 2) {
+            cout << "\nGoodbye!" << endl;
         } else {
-            cout << "Invalid input" << endl;
+            cout << "\nInvalid input" << endl;
         }
     }
 
+    /**
+     * the program is now over so we need to clean up the messy data
+     * vectors allow for easy way to loop through and delete all Node pointers
+     * then we finally delete the multilist once all Nodes are deleted
+     */
+    for(int i = 0; i < vNode.size(); i++) {
+        delete vNode[i];
+        delete vStud[i];
+        delete vClass[i];
+    }
     delete ml;
 
     return 0;
