@@ -1,3 +1,6 @@
+# Makefile for Multilist project
+# @author Seth Dalenberg (sddalenb)
+# @date 17-Oct-2017
 Multi: Driver.o Multilist.o Node.o
 	g++ -std=c++11 Driver.o Multilist.o Node.o -o Multi
 Node.o: Node.cpp Node.h
